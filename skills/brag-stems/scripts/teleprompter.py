@@ -223,7 +223,7 @@ open(os.path.join(tp, "index.html"), "w").write(page)
 print(f"transcript: {len(lines)} lines → stems/transcript.(txt|srt|vtt|json)")
 
 if args.render:
-    hf = ["npx", "-y", "hyperframes"]
+    hf = ["npx", "-y", os.environ.get("HYPERFRAMES_PKG", "hyperframes@0.8.143")]
     for step in (["check"], ["render", "--quality", "high", "-o", os.path.join(stems, "teleprompter.mp4")]):
         r = subprocess.run(hf + step, cwd=tp, stdin=subprocess.DEVNULL, capture_output=True, text=True)
         if r.returncode:

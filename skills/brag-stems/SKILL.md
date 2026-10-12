@@ -14,6 +14,23 @@ description: Run /brag, then hand off a post-production kit with the video. The 
 
 Everything lands in `<output-dir>/stems/`. Use it to remix in a DAW, re-record the narration with a real voice, caption the video, or recut it in an editor.
 
+## House defaults (this fork)
+
+These apply to every run unless the user says otherwise:
+
+- **Pinned Hyperframes:** use `npx hyperframes@0.8.143` for every Hyperframes command in the run (`check`, `snapshot`, `render`, `tts`), including brag's own steps. `teleprompter.py` uses the same pin; override it with `HYPERFRAMES_PKG=hyperframes@<version>`.
+- **Social loudness:** after the poster is baked, raise `brag.mp4` to about −14 LUFS with Step 4.5. Only the posted video is normalized; the stems stay clean.
+- **Length:** brag's 15–25s window is a default, not a cap. When the user asks for 30–45s, pass `--duration` and pace scenes to it.
+- **Stems every time:** even when plain `/brag` was invoked, finish with Steps 4.5–6.
+- **Sharing:** upload to Google Drive (or anywhere else) only when the user asks. With Drive for Desktop, copy files into the synced folder, then read the link id from the `com.google.drivefs.item-id#S` extended attribute.
+
+### Setup notes
+
+- **Kokoro voice (`--voice`):** `kokoro-onnx` needs Python 3.10+. If the system Python is older, make a venv (`uv venv --python 3.12 ~/.venvs/hyperframes-tts && uv pip install --python ~/.venvs/hyperframes-tts/bin/python kokoro-onnx soundfile`). Then prefix the Hyperframes commands with `HYPERFRAMES_PYTHON=~/.venvs/hyperframes-tts/bin/python`.
+- **`npx` in loops:** inside a `while read` loop, end each `npx` call with `</dev/null`, or it swallows the loop's input and only the first line runs.
+- **Speech recognition:** skip `hyperframes transcribe` for the transcript. On short TTS clips it installs slowly and returns garbage; Step 6 times lines from the audio itself.
+- **Synthetic voices** are for promo narration. If a product's own host or character voices must be real, licensed people, keep the two separate, and swap a human read in via `script.json` and Step 6.
+
 ## Dispatch
 
 - **`/brag-stems --only <output-dir>`**: skip making the video and run the steps below on an existing brag output folder. It needs `composition/index.html`; `brag.mp4` is optional.
@@ -37,6 +54,19 @@ Stem sorting reads each `<audio>` element's `src` folder first, and its `id` pre
 // composition/assets/vo/script.json
 {"voice": "Kokoro af_heart", "lines": {"vo1": "First narration line.", "vo2": "Second line."}}
 ```
+
+## Step 4.5: Social loudness
+
+```bash
+python3 <skill-dir>/scripts/normalize_video.py <output-dir>/brag.mp4
+```
+
+It raises `brag.mp4` toward −14 LUFS (FFmpeg `loudnorm`, true-peak ceiling −1.5 dB), stream-copies the video so the baked poster frame survives, and keeps the original as `brag.prenorm.mp4`.
+
+- Mixes with big SFX hits can land a little under −14 rather than being squashed. That's expected.
+- On macOS it encodes with Apple's AAC encoder; FFmpeg's built-in one can add a peak at the start of the file on loud mixes.
+
+Run it before Step 5, so `mix.wav` matches the posted video.
 
 ## Step 5: Stems + two-track mix
 
@@ -65,7 +95,7 @@ It needs `composition/assets/vo/script.json` and uses `stems/dialogue.wav` as th
 - Word timing within a sentence is estimated from word length.
 - No speech recognition is involved, so brand names are always spelled right.
 
-The teleprompter's source is a Hyperframes composition in `<output-dir>/teleprompter/`; edit it and re-render with `npx hyperframes render`. For a beam-splitter rig, mirror the output:
+The teleprompter's source is a Hyperframes composition in `<output-dir>/teleprompter/`; edit it and re-render with `npx hyperframes@0.8.143 render`. For a beam-splitter rig, mirror the output:
 
 ```bash
 ffmpeg -i stems/teleprompter.mp4 -vf hflip -c:a copy stems/teleprompter-mirrored.mp4

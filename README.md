@@ -59,10 +59,12 @@ Already made a video? Run it on the folder:
 
 Swap in a human voice, remix the music, caption the video, or recut it in Premiere or Resolve without starting over.
 
+> **This fork's defaults:** Hyperframes is pinned to `0.8.143`, the posted `brag.mp4` is raised to about −14 LUFS for social platforms (the stems stay clean), and the skill carries setup notes for Kokoro voices. See [`skills/brag-stems/SKILL.md`](skills/brag-stems/SKILL.md#house-defaults-this-fork).
+
 **Install just `/brag-stems`** (it runs on top of `/brag`, so install both):
 
 ```bash
-npx skills add https://github.com/latent-spaces/brag --skill brag --skill brag-stems
+npx skills add https://github.com/CTZNCHANCE/brag --skill brag --skill brag-stems
 ```
 
 ## Install /brag
