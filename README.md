@@ -61,6 +61,27 @@ Swap in a human voice, remix the music, caption the video, or recut it in Premie
 
 > **This fork's defaults:** Hyperframes is pinned to `0.8.143`, the posted `brag.mp4` is raised to about −14 LUFS for social platforms (the stems stay clean), and the skill carries setup notes for Kokoro voices. See [`skills/brag-stems/SKILL.md`](skills/brag-stems/SKILL.md#house-defaults-this-fork).
 
+
+## New: `/brag-stems-pro`
+
+**Bring your own voice and your own music, and keep every cue on time.**
+
+Everything in `/brag-stems`, plus two round trips:
+
+- **Real voice.** A recording teleprompter (`teleprompter-record.mp4`) shows a 5-4-3-2-1 pre-roll with beeps, a running program timecode, "LINE 3 IN 1.2s" cues, a cue bar before every line, word-by-word pacing, and a music-and-sfx-only guide track. A rehearsal version adds the original narration quietly. Talent records one take, and `import_voice.py` splits it and lands every line on the exact frame of the original. Long reads get a gentle speed-up (pitch preserved). The music ducking is rebuilt around the new reads, then `finish.py` re-renders the video and every deliverable.
+- **Own music (Suno).** `suno_prompt.py` writes a ready-to-paste Suno prompt (style, exclude styles, instrumental, structure tags) and a timing sheet with every scene cut, the logo hit and the narration windows. Generate 2–4 versions with your own Suno credits and drop them in `suno/incoming/`. `fit_music.py` lands each track's strongest downbeat on the logo hit, matches the level, ducks it under the voice and renders a preview of the real video for each option. Accept one and re-render.
+
+```text
+/brag-stems-pro --full --voice --format vertical
+/brag-stems-pro --voice-in brag-output     # after the talent drops a take in brag-output/voice-takes/
+/brag-stems-pro --music brag-output        # after Suno downloads land in brag-output/suno/incoming/
+```
+
+```bash
+npx skills add https://github.com/CTZNCHANCE/brag --skill brag --skill brag-stems --skill brag-stems-pro
+```
+
+Suno licensing: free-plan songs are for non-commercial use only; use a paid plan for ads.
 **Install just `/brag-stems`** (it runs on top of `/brag`, so install both):
 
 ```bash
@@ -107,6 +128,7 @@ Add `-g` to install globally (available in every project); drop it to scope to t
 rsync -a --exclude '.DS_Store' skills/brag/ ~/.claude/skills/brag/
 rsync -a --exclude '.DS_Store' skills/brag-slim/ ~/.claude/skills/brag-slim/  # optional: the /brag-slim command
 rsync -a --exclude '.DS_Store' skills/brag-stems/ ~/.claude/skills/brag-stems/  # optional: the /brag-stems command
+rsync -a --exclude '.DS_Store' skills/brag-stems-pro/ ~/.claude/skills/brag-stems-pro/  # optional: /brag-stems-pro (needs brag-stems)
 ```
 
 Restart Claude Code after copying.
@@ -166,6 +188,7 @@ You get a `brag-output/` folder with the plan, a composition brief, share copy, 
 - `skills/brag/` — the skill, references, and bundled music + SFX
 - `skills/brag-slim/` — `/brag-slim`, the single-file skill for Claude Opus 5.5
 - `skills/brag-stems/` — `/brag-stems`, the post-production kit: stems, two-track mix, timecoded transcript and teleprompter
+- `skills/brag-stems-pro/` — `/brag-stems-pro`: recording teleprompter, real-voice import, Suno prompt and music fitting
 - `examples/` — fake product sites used as a benchmark suite
 - `docs/` — the launch site (GitHub Pages)
 - `plugin.json` — portable Agent Plugins manifest
